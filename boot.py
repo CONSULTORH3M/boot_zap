@@ -18,7 +18,7 @@ def enviar_mensagem_com_enter(cliente, mensagem, listbox):
         webbrowser.open(link_mensagem_whatsapp)
 
         # Aumentando o tempo para o WhatsApp carregar
-        time.sleep(50)  # Aumenta o tempo de espera para o WhatsApp carregar corretamente
+        time.sleep(20)  # Aumenta o tempo de espera para o WhatsApp carregar corretamente
 
         # Aguardar mais um pouco para garantir que a página está completamente carregada
         time.sleep(10)  # Espera mais 10 segundos para garantir que a interface de envio esteja pronta
@@ -43,23 +43,28 @@ def criar_mensagem(cliente):
     grupo = cliente["grupo"].lower()  # Converte o grupo para minúsculo para garantir a comparação correta
     nome = cliente["nome"]
     empresa = cliente["empresa"]
-    comprimento = cliente["comprimento"]
+    inicio = cliente["inicio"]
 
     # Mensagem para o grupo "ativos"
     if grupo == "ativos":
-        return f"{comprimento}, {nome}, da empresa {empresa}, Como está o uso do sistema? Tudo certo? Algo a relatar? Entre em contato para mais informações no (54) 9 9104 1029. Prestamos suporte Técnico rápido e ativo, mas Caso você não queira mais receber informações sobre nossos serviços e produtos, basta nos enviar a palavra: *SAIR*."
+        return f"{inicio}, {nome}, da empresa {empresa}, Como está o uso do sistema? Tudo certo? Algo a relatar? Entre em contato para mais informações no (54) 9 9104 1029. Prestamos suporte Técnico rápido e ativo, mas Caso você não queira mais receber informações sobre nossos serviços e produtos, basta nos enviar a palavra: *SAIR*."
     
     # Mensagem para o grupo "prospects"
     elif grupo == "prospects":
-        return f"{comprimento}, {nome}, da empresa {empresa}, Nós da *GDI Informatica*, trabalhamos com um *Sistema de Gestão: Simples e Prático*, e montamos a cobrança encima das ferramentas que realmente for utilizar. * Mas Caso você não queira mais receber informações, sobre nossos serviços e produtos, basta nos enviar a palavra: SAIR*."
+        return f"{inicio}, {nome}, da empresa {empresa}, Nós da *GDI Informatica*, trabalhamos com um *Sistema de Gestão: Simples e Prático*, e montamos a cobrança encima das ferramentas que realmente for utilizar. * Mas Caso você não queira mais receber informações, sobre nossos serviços e produtos, basta nos enviar a palavra: SAIR*."
+
+    # Mensagem para o grupo "POS"
+    elif grupo == "pos":
+        return f"{inicio}, {nome}, da empresa {empresa}, Como está o usa o Aplicativo, tudo Certo, Algo a relatar. Entre em contato para mais informações no (54) 9 9104 1029. Prestamos suporte Técnico rápido e ativo, mas Caso você não queira mais receber informações sobre nossos serviços, basta nos enviar a palavra: *SAIR*."
 
     # Mensagem para o grupo "clientes"
-    elif grupo == "clientes":
-        return f"{comprimento}, {nome}, da empresa {empresa}, temos novidades e promoções exclusivas para você. Entre em contato!"
+    elif grupo == "em negociacao":
+        return f"{inicio}, {nome}, da empresa {empresa}, Nós da *GDI Informatica*, trabalhamos com um *Sistema de Gestão: Simples e Prático*, 
+        ja tinhamos conversado algo, agora temos novidades e promoções exclusivas para você nesse novo Ano. Entre em contato comigo, o Glaucio!   *Mas Caso você não queira mais receber informações, sobre nossos serviços, basta nos enviar a palavra: SAIR*."    
 
     # Mensagem para o grupo "clientes"
     elif grupo == "contadores":
-        return f"{comprimento}, {nome}, da empresa {empresa}, Visitei o seu Escritório pessoalmente, e estamos entrando em contato novamente, para dar uma solução pratica e simples para seu cliente, referente a sistema de Gestão. Entre em contato!"
+        return f"{inicio}, {nome}, da empresa {empresa}, Visitei o seu Escritório pessoalmente, e estamos entrando em contato novamente, para dar uma solução pratica e simples para seu cliente, referente a sistema de Gestão. Entre em contato!"
     
     # Caso o grupo não corresponda a nenhum dos definidos, a mensagem será padrão
     else:
@@ -91,7 +96,7 @@ def normalizar_telefone(telefone):
 # Função para ler os dados da planilha
 def ler_dados_planilha(pagina_selecionada, grupo_selecionado):
     try:
-        workbook = openpyxl.load_workbook('mala_whats_teste.xlsx')
+        workbook = openpyxl.load_workbook('mala_whats.xlsx')
         aba = workbook[pagina_selecionada]
         clientes = []
 
@@ -103,7 +108,7 @@ def ler_dados_planilha(pagina_selecionada, grupo_selecionado):
                         "empresa": linha[0],
                         "nome": linha[1],
                         "telefone": telefone_normalizado,
-                        "comprimento": linha[3] if linha[3] else "Indefinido",
+                        "inicio": linha[3] if linha[3] else "Indefinido",
                         "grupo": linha[4] if linha[4] else "Indefinido"
                     }
                     if grupo_selecionado == "Todos" or cliente["grupo"].lower() == grupo_selecionado.lower():
@@ -129,7 +134,7 @@ def iniciar_envio(listbox, grupo_selecionado, pagina_selecionada):
             break
 
         mensagem = criar_mensagem(cliente)
-        listbox.insert(tk.END, f"Enviando para {cliente['nome']} ({cliente['telefone']})...Aguardando 30s \n")
+        listbox.insert(tk.END, f"Enviando a {cliente['nome']} ({cliente['telefone']})...Aguardando 30s para Disparar \n")
         listbox.yview(tk.END)
         enviar_mensagem_com_enter(cliente, mensagem, listbox)
         
@@ -148,7 +153,7 @@ def parar_envio(listbox):
 # Função para obter as abas do Excel
 def obter_abas_excel():
     try:
-        workbook = openpyxl.load_workbook('mala_whats_teste.xlsx')
+        workbook = openpyxl.load_workbook('mala_whats.xlsx')
         return workbook.sheetnames
     except Exception as e:
         print(f"Erro ao obter abas do Excel: {e}")
@@ -178,12 +183,12 @@ def setup_gui():
 
     # Dropdown para selecionar o grupo
     grupo_var = tk.StringVar(value="Todos")
-    tk.Label(janela, text="Selecione o Grupo:").pack(pady=5)
-    grupo_dropdown = tk.OptionMenu(janela, grupo_var, "Todos", "Ativos", "Prospects", "Parceiros", "Contadores")
+    tk.Label(janela, text="Selecione o Modelo Mensagem(Grupo):").pack(pady=5)
+    grupo_dropdown = tk.OptionMenu(janela, grupo_var, "Todos", "Ativos", "Prospects", "Parceiros", "Em Negociacao", "Contadores")
     grupo_dropdown.pack(pady=5)
 
     # Botão para iniciar o envio
-    tk.Button(janela, text="Iniciar Envio", command=iniciar_envio_thread).pack(pady=10)
+    tk.Button(janela, text="Iniciar Envio", command=iniciar_envio_thread, bg="orange", fg="white").pack(pady=10)
 
     # Área para exibir logs
     listbox = tk.Listbox(janela, width=70, height=15)
